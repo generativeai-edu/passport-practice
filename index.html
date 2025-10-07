@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>生成AIパスポート 試験対策問題集</title>
+  <style>
+    :root {
+      --bg: #f7f9fc;
+      --card: #ffffff;
+      --accent: #0b66ff;
+      --muted: #586069;
+      --border: #eef3fb;
+      --text: #0b1a2b;
+      --shadow: 0 8px 25px rgba(12, 18, 30, 0.07);
+    }
+    * {
+      box-sizing: border-box;
+    }
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, 'Hiragino Kaku Gothic ProN', 'Noto Sans JP', sans-serif;
+      background-color: var(--bg);
+      color: var(--text);
+      margin: 0;
+      padding: 32px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+    .container {
+      max-width: 800px;
+      width: 100%;
+      text-align: center;
+    }
+    h1 {
+      font-size: 2.5rem;
+      color: var(--text);
+      margin-bottom: 16px;
+    }
+    p.subtitle {
+      font-size: 1.1rem;
+      color: var(--muted);
+      margin-bottom: 48px;
+    }
+    .card-container {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 32px;
+    }
+    .card {
+      background-color: var(--card);
+      border-radius: 12px;
+      padding: 32px;
+      box-shadow: var(--shadow);
+      text-decoration: none;
+      color: var(--text);
+      transition: transform 0.2s ease, box-shadow 0.2s ease;
+      display: flex;
+      flex-direction: column;
+      justify-content: space-between;
+    }
+    .card:hover {
+      transform: translateY(-5px);
+      box-shadow: 0 12px 30px rgba(12, 18, 30, 0.1);
+    }
+    .card h2 {
+      font-size: 1.5rem;
+      color: var(--accent);
+      margin-top: 0;
+      margin-bottom: 12px;
+    }
+    .card p {
+      color: var(--muted);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      flex-grow: 1;
+    }
+    .card .button {
+      background-color: var(--accent);
+      color: white;
+      padding: 12px 20px;
+      border-radius: 8px;
+      text-decoration: none;
+      font-weight: 500;
+      display: inline-block;
+      margin-top: 24px;
+      transition: background-color 0.2s ease;
+    }
+    .card .button:hover {
+        background-color: #0056e0;
+    }
+
+    @media (max-width: 768px) {
+      body {
+        padding: 24px;
+      }
+      h1 {
+        font-size: 2rem;
+      }
+      .card-container {
+        grid-template-columns: 1fr;
+        gap: 24px;
+      }
+    }
+  </style>
+</head>
+<body>
+
+  <div class="container">
+    <h1>生成AIパスポート 試験対策問題集</h1>
+    <p class="subtitle">目的に合わせて問題を選択し、学習を始めましょう。</p>
+
+    <div class="card-container">
+      <a href="index_seigo.html" class="card">
+        <div>
+          <h2>シラバス準拠 学習項目別問題</h2>
+          <p>試験範囲の全項目を網羅した詳細な問題集です。苦手分野の克服や、基礎からじっくり学びたい方におすすめです。</p>
+        </div>
+        <div class="button">学習を始める</div>
+      </a>
+
+      <a href="index_mogi.html" class="card">
+        <div>
+          <h2>総まとめ 模擬問題<br>(全35テーマ)</h2>
+          <p>シラバス全体から抽出した35の重要テーマで構成される実践形式の模擬試験です。学習の総仕上げや、実力測定に最適です。</p>
+        </div>
+        <div class="button">挑戦する</div>
+      </a>
+    </div>
+  </div>
+
+</body>
+</html>
