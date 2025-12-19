@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `AI新法（人工知能関連技術の研究開発及び活用の推進に関する法律）において、法の対象となる「人工知能関連技術（AI）」の定義は限定的であり、現在普及している「生成AI」や「自動運転技術」の多くは、まだ技術が未成熟であるため法の対象外とされている。`,
+        answer: '×',
+        explanation: `本法律における「人工知能関連技術」の定義は非常に幅広く設定されています。人間の知的な能力（認識、予測、判断など）を代替する技術や、入力データを処理して新たな結果を出力するシステムが対象となります。したがって、ディープラーニング（深層学習）を用いた技術や、現在広く利用されている「生成AI」、および「自動運転」なども法の対象に含まれます。`
+      },
+      {
+        index: 2,
+        text: `AI新法第7条において、AIを活用してサービスを提供したり業務で利用したりする「活用事業者」は、国や地方公共団体が実施するAIのリスク対策などの施策に対して、可能な範囲で努力すればよく、法的な「協力義務」までは課されていない。`,
+        answer: '×',
+        explanation: `AIを活用する事業者には、積極的な活用の努力義務に加え、国や地方公共団体への「協力義務」が明確に定められています。条文において、事業者は国などが実施する施策に「協力しなければならない」とされており、単なる努力目標よりも強い義務が課されています。これはAIのリスク管理において活用事業者が重要な役割を担っているためです。`
+      },
+      {
+        index: 3,
+        text: `AI新法に基づき、国はAIの利用状況や人権侵害などの問題発生状況について調査する権限を持ち、その結果に基づいて事業者に対して必要な指導や助言を行うことができる。`,
+        answer: '○',
+        explanation: `第16条により、国はAIの開発動向や利用状況、不適切な利用の実態などを調査する権限を有しています。この調査には、国内外の動向把握や不適切な利用事例の分析も含まれます。そして、調査の結果、問題があると認められる場合には、国は事業者に対して改善のための指導や助言を行う仕組みとなっています。`
+      },
+      {
+        index: 4,
+        text: `AI新法は、日本独自のAI規制を確立することを主眼としており、G7（先進7か国）などで合意された国際的なAIルールや原則とは異なる独自の基準を優先して運用されることになっている。`,
+        answer: '×',
+        explanation: `第13条において、国際的なルールとの連携が重視されています。具体的には、G7などで合意された「人間中心のAI」や「信頼できるAI」といった国際的な原則やルールと足並みを揃える方針が示されています。AI技術は国境を越えて展開されるため、日本独自の基準だけで運用するのではなく、国際的な協調が求められています。`
+      },
+      {
+        index: 5,
+        text: `今回制定されたAI新法はあくまで今後の法整備の「土台」となる法律であり、将来的なAI技術の進歩や社会情勢の変化に応じて、新たな法規制の追加や変更が行われる可能性が法律の中で示されている。`,
+        answer: '○',
+        explanation: `第10条に示されている通り、この法律はAIに関する法制度の基礎（土台）となるものです。AI技術は進化が非常に速いため、技術の進歩やそれに伴う社会の変化に合わせて、将来的に新しい法律やルールが追加・変更されていくことが想定されており、その旨が法的に位置づけられています。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

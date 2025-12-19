@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `2025年6月に公布された「AI新法」は、AIを活用する事業者に対して国からの調査や情報収集に応じる「法的な協力義務」を課すものであり、従来のガイドラインのような単なる自主的な目標ではない。`,
+        answer: '○',
+        explanation: `その通りです。これまでの「AI事業者ガイドライン」はあくまで自主的な取り組み（ソフトロー）でしたが、「AI新法」は国会で成立した法律であり、事業者には国からの調査等に対する協力義務が生じます。これにより、AIガバナンスは「自主的なお約束」から「法律上の義務」を含むフェーズへと移行しました。`
+      },
+      {
+        index: 2,
+        text: `「AI新法」が施行されたことにより、法的拘束力のない「AI事業者ガイドライン」は役割を終えたため、今後は事業者がガイドラインを参照したり準拠したりする必要はない。`,
+        answer: '×',
+        explanation: `ガイドラインと新法は「車の両輪」のような相互補完的な関係にあります。新法は社会全体としての最低限の義務や安全装置（ブレーキ）の役割を果たしますが、具体的な運用のベストプラクティスや自主的な良い取り組み（アクセル）を示すのは依然としてガイドラインの役割です。事業者は両方を組み合わせて対応する必要があります。`
+      },
+      {
+        index: 3,
+        text: `「AI新法」において、AIの利用によって悪質な事案が発生した場合、国は事業者に対して指導・助言を行ったり、場合によっては事業者名を公表したりする権限を持つ。`,
+        answer: '○',
+        explanation: `正しい記述です。AI新法では、国が事業者に対して情報収集や調査研究を行う権限が明確化されており、問題発生時には指導や助言、さらには公表といった措置を取ることが可能になっています。これにより、AIの安全な利用を担保する仕組みが強化されました。`
+      },
+      {
+        index: 4,
+        text: `AI事業者ガイドラインは、AIを開発・提供するIT企業のみを対象としており、一般企業が業務で生成AIを利用するような「AI利用者」の立場では、特に対策を行う必要はない。`,
+        answer: '×',
+        explanation: `AI事業者ガイドラインは、AI開発者や提供者だけでなく、「AI利用者」を含むすべてのAI活用事業者を対象としています。AIを利用する企業であっても、社内ルールの整備やリスク評価、リテラシー教育といった主体的な取り組み（AIガバナンス）が求められます。`
+      },
+      {
+        index: 5,
+        text: `「AI新法」はAIに関する包括的な法律であるため、AIを活用した事業を行う際は、この新法さえ遵守していれば、著作権法や個人情報保護法といった既存の法律については考慮しなくてもよい。`,
+        answer: '×',
+        explanation: `AI新法ができたからといって、他の法律が免除されるわけではありません。個人情報保護法や著作権法など、AIの利用に関わる既存の法律は引き続き遵守する必要があります。AI新法への対応と並行して、これら関連法規も守ることが大前提となります。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

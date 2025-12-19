@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `GPT-5には利用目的や難易度に合わせて3つのモデルが用意されており、そのうち「GPT-5 Thinking」は、日常的な質問やコーディングなどの一般的な作業に対して、最も高速に応答することを得意とするモデルである。`,
+        answer: '×',
+        explanation: `「GPT-5 Thinking」は、その名の通り「考える力（推論）」に特化したモデルであり、複雑な分析や論理的な結論を導き出すタスクに向いています。日常的な質問や一般的な作業に対して、即座に高速に応答することを得意とするのは「GPT-5（標準モデル）」です。用途に合わせて適切なモデルを選択することが重要です。`
+      },
+      {
+        index: 2,
+        text: `AIが事実に基づかない嘘やでっち上げの情報をあたかも真実であるかのように自信を持って回答してしまう現象を「ハルシネーション」と呼び、GPT-5世代のモデルではこの問題への対策が進んでいる。`,
+        answer: '○',
+        explanation: `ハルシネーション（幻覚）は、生成AIにおける大きな課題の一つです。GPT-5、特に推論能力を強化したモデルでは、以前のモデル（o3モデルなど）と比較して、このハルシネーションの発生率が大幅に減少していると報告されています。`
+      },
+      {
+        index: 3,
+        text: `GPT-5ファミリーの最上位モデルである「GPT-5 Pro」では、「parallel test time compute」と呼ばれる仕組みを利用しており、これは複数のAIが並行して推論を行うことで、最も精緻で正確な回答を導き出す技術である。`,
+        answer: '○',
+        explanation: `「GPT-5 Pro」は最も複雑な問題に対応するために設計されたモデルです。「parallel test time compute」という技術により、単一の処理ではなく、並行して複数の推論プロセスを走らせて検証を行うような処理が可能となります。これにより、非常に高い専門性が求められるタスクにおいても、最も適切で精度の高い回答を提供することができます。`
+      },
+      {
+        index: 4,
+        text: `GPT-5は2025年8月に発表されたAIモデルであり、その能力は「博士号レベル」の専門性が求められる質問や作業にも対応できるほど向上している。`,
+        answer: '○',
+        explanation: `GPT-5は、従来のモデルから飛躍的に能力が向上しており、特定の専門分野においては博士号取得者レベルの知識や推論能力を発揮するとされています。これにより、高度な専門知識が必要な相談や、複雑な実務作業のパートナーとしての活用が期待されています。`
+      },
+      {
+        index: 5,
+        text: `「推論（Reasoning）」とは、単に知識を検索して提示することではなく、情報をつなぎ合わせて論理的な結論を導き出す力のことを指し、GPT-5 Thinkingはこの能力が強化されているため、複雑なビジネス戦略の立案などに向いている。`,
+        answer: '○',
+        explanation: `推論能力は、断片的な情報から論理を組み立てて答えを出す能力です。GPT-5 Thinkingはこの「考える力」に特化しており、単なる知識の回答に留まらず、難解な論文の分析や、複数の要因が絡み合うビジネス戦略の立案など、深い思考プロセスを必要とするタスクで高いパフォーマンスを発揮します。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

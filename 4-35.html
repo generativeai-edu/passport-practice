@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `ディープフェイクとは、AI技術を用いて作成された「本物そっくりの偽の動画・画像・音声」のことを指し、これによって生じるリスクには「名誉毀損」や「プライバシー侵害」が含まれる。`,
+        answer: '○',
+        explanation: `ディープフェイク（Deepfake）は、深層学習（ディープラーニング）と偽物（フェイク）を組み合わせた造語で、AIによって生成された真偽の判別が困難な合成メディアのことです。特定の人物が言っていないことを言っているように見せることで社会的評価を下げる「名誉毀損」や、私生活を覗き見るような偽画像を作成する「プライバシー侵害」などの権利侵害リスクが懸念されています。`
+      },
+      {
+        index: 2,
+        text: `AIによって生成された画像が既存の著作物と「そっくり（類似性）」であれば、その著作物をAIが学習等で参考にしていたか（依拠性）にかかわらず、直ちに著作権侵害と認定される。`,
+        answer: '×',
+        explanation: `著作権侵害（複製権や翻案権の侵害）が成立するためには、一般的に「類似性（似ていること）」と「依拠性（既存の著作物に依拠して作られたこと）」の両方が認められる必要があります。偶然似てしまった場合など、既存の著作物を参考にしていなければ（依拠性がなければ）、通常は著作権侵害とはなりません。`
+      },
+      {
+        index: 3,
+        text: `個人情報保護法において、人種、信条、社会的身分、病歴などの「要配慮個人情報（センシティブ情報）」を取得する際は、原則として本人の同意が必要である。`,
+        answer: '○',
+        explanation: `要配慮個人情報（センシティブ情報）は、不当な差別や偏見が生じる可能性がある特に慎重な取り扱いが必要な情報です。そのため、個人情報保護法では、これらの情報を取得する場合には、原則としてあらかじめ本人の同意を得ることが義務付けられています。`
+      },
+      {
+        index: 4,
+        text: `企業の従業員が、自社の「営業秘密」を生成AIに入力した場合でも、その情報が社外秘（秘密）であることに変わりはないため、不正競争防止法による「営業秘密」としての法的保護は継続して受けられる。`,
+        answer: '×',
+        explanation: `不正競争防止法で「営業秘密」として保護されるためには、「秘密管理性（秘密として管理されている）」「有用性」「非公知性（公に知られていない）」の3要件を全て満たす必要があります。生成AI等の外部サービスに不用意に機密情報を入力してしまうと、誰でもアクセス可能な状態や、AI学習データとして利用される状態になり、「秘密管理性」が失われたとみなされ、法的保護を受けられなくなるリスクがあります。`
+      },
+      {
+        index: 5,
+        text: `日本国内で議論されている「AI新法（AI事業者への規制）」の動向として、違反した事業者には直ちに厳しい懲役刑が科される規定が中心となっている。`,
+        answer: '×',
+        explanation: `AI規制に関する近年の議論や法案の方向性では、イノベーションを阻害しないよう、まずは一律の厳しい罰則（懲役や罰金）を設けるのではなく、悪質な事業者に対して「事業者名の公表」などを行うことで社会的信用による是正を促すアプローチ（ソフトローからハードローへの段階的な移行など）が検討されています。ただし、既存の法律（著作権法など）に違反した場合は、それぞれの法律に基づいた罰則が適用されます。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

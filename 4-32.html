@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `2025年6月4日に公布された通称「AI新法」の正式名称は、「人工知能規制及びリスク管理に関する法律」である。`,
+        answer: '×',
+        explanation: `正式名称は「人工知能関連技術の研究開発及び活用の推進に関する法律」です。この法律は、単にAIを「規制」するものではなく、研究開発や社会での活用を「推進」しつつ、リスクにも対応することを目的としています。「規制」という言葉が名称に入っていない点が重要なポイントです。`
+      },
+      {
+        index: 2,
+        text: `日本が目指すAI政策の方向性である「第三の道」とは、EUのような厳格な「規制」と、アメリカのような自由な「開発促進」の双方のバランスを取り、イノベーションの促進とリスク対応の両立を目指すものである。`,
+        answer: '○',
+        explanation: `その通りです。世界で最も厳しい規制を導入したEUや、イノベーションを最優先するアメリカとは異なり、日本は両者のバランスを取る独自のアプローチ（第三の道）を採用しています。これにより、国際競争力を高めつつ、安全なAI利用環境を整備することを狙いとしています。`
+      },
+      {
+        index: 3,
+        text: `「AI新法」が制定された背景の一つとして、日本のAI利用率や投資額がアメリカや中国と比較して進んでおり、その優位性を維持する必要があったことが挙げられる。`,
+        answer: '×',
+        explanation: `正しくは逆です。日本のAI利用率（2025年時点で約26%）は、アメリカ（約69%）や中国（約81%）に比べて大きく遅れをとっており、投資額も少ない状況にありました。この「AI格差」により、国際競争で取り残されるという危機感が、法律制定の大きな背景となっています。`
+      },
+      {
+        index: 4,
+        text: `AI技術の進歩に伴う新たなリスクとして、「ディープフェイクの悪用」「犯罪への利用」「権利侵害（著作権やプライバシー）」などが挙げられ、AI新法はこれらの課題に対応することも目的の一つとしている。`,
+        answer: '○',
+        explanation: `AI新法は開発の推進だけでなく、こうした負の側面（リスク）への対応も目的としています。特に本物そっくりの偽動画（ディープフェイク）や、AI生成物による知らぬ間の権利侵害などは、社会的な脅威として認識されており、法整備によってこれらの問題に対処できる環境づくりが進められています。`
+      },
+      {
+        index: 5,
+        text: `世界の動向において、EU（欧州連合）は「開発の促進」を最重視しており、違反した企業に対する罰則よりも技術革新を妨げないことを優先するアプローチをとっている。`,
+        answer: '×',
+        explanation: `EUは「規制」を重視する立場をとっています。世界で最も厳しいAI規制法を導入しており、違反した企業には巨額の罰金（最大で約57億円等）が科される可能性があります。「開発の促進」を重視し、イノベーションを妨げないことを優先しているのはアメリカのアプローチです。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

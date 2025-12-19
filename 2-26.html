@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `近年のAI（Codexなど）の進化により、プログラミング開発における人間の役割は、自らコードを記述する「作業者」としての比重が高まり、AIはその補助を行う「アシスタント」としての役割に特化しつつある。`,
+        answer: '×',
+        explanation: `AIの進化によって役割の関係性は逆転しています。AIがコードの記述や自律的なタスク実行を行う「実行者（作業者）」となり、人間はその成果物をチェックし、方向性を指示する「監督者」へと役割が変化しています。人間は細かなコーディング作業よりも、何を作るかというアイデアや品質管理に集中できるようになります。`
+      },
+      {
+        index: 2,
+        text: `「自律型エージェント」としての機能を持つAI（Codexなど）の最大の特徴は、与えられた目的を達成するためにAI自身が計画を立て、作業途中でエラーなどの問題が発生しても自力で解決策を見出し、最後まで作業を完遂しようとする点にある。`,
+        answer: '○',
+        explanation: `自律型エージェントは、単に命令されたコードを一行書くだけでなく、目的達成のためのプランニングから実行、修正までを自律的に行います。従来のように人間が手取り足取り修正指示を出さなくても、AIがエラー原因を特定し、修正コードを提案・適用してゴールを目指す能力が大きな強みです。`
+      },
+      {
+        index: 3,
+        text: `Codexなどの最新AIモデルに搭載されている「コンパクション（圧縮）」技術とは、膨大なプロジェクト情報のすべてを詳細なまま保持し続ける技術であり、これによりメモリ容量を気にせず無限にデータを保存できる仕組みである。`,
+        answer: '×',
+        explanation: `コンパクション（圧縮）技術は、情報を「すべて詳細なまま」保持するのではなく、膨大な情報の中から重要なポイントだけを「要約」して記憶領域に留める技術です。これにより、限られた記憶容量（コンテキストウィンドウ）の中でも、プログラム全体の複雑な構造や長期的な文脈を維持し続けることが可能になります。`
+      },
+      {
+        index: 4,
+        text: `「Vibe Coding（バイブ・コーディング）」とは、プログラミングの専門知識がない人でも、「いい感じにして」「雰囲気で」といった曖昧な自然言語の指示（Vibe）を与えるだけで、AIが意図を汲み取ってコードを生成・修正してくれる開発スタイルのことを指す。`,
+        answer: '○',
+        explanation: `Vibe Codingは、厳密な要件定義や専門用語を使わなくても、感覚的な言葉や自然言語の指示でプログラミングを行う手法です。AIの「理解担当部分（エンコーダー）」の強化により、曖昧な指示からでも人間の意図や文脈を深く理解し、動作するアプリケーションを生成できるようになったことで実現した新しい働き方です。`
+      },
+      {
+        index: 5,
+        text: `生成AIは新規のコード生成には優れているが、既存のコードの内部構造を整理する「リファクタリング」や、バグの原因を特定する「デバッグ」といった高度な専門作業については、まだ人間が手作業で行う必要がある。`,
+        answer: '×',
+        explanation: `現在の高度なプログラミングAIは、新規作成だけでなく、リファクタリング（動作を変えずにコードを綺麗にする作業）やデバッグ（バグ修正）も得意としています。何万行ものコードの意味を把握し、保守性を高めるための修正や、エラー箇所の特定と修正案の提示を代行することが可能です。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `GPT-o4（o4シリーズ）は、動画や音声のリアルタイム処理を得意とする「GPT-4o（オムニ）」と同じ系統のモデルであり、単に性能が向上した後継版である。`,
+        answer: '×',
+        explanation: `GPT-o4は「推論（Reasoning）」に特化したモデル群であり、マルチモーダル処理を得意とする「GPT-4o（オムニ）」とは全く別の系列です。o4シリーズは、回答を出力する前に「思考の下書き（Chain of Thought）」を行うことで、数学やプログラミングなどの論理的思考が必要な複雑なタスクに強みを発揮します。`
+      },
+      {
+        index: 2,
+        text: `GPT-o4やo3モデルが持つ最大の特徴である「推論（Chain of Thought）」とは、AIが答えを出す前に、途中の思考過程を論理的に繋げて検討する仕組みのことである。`,
+        answer: '○',
+        explanation: `その通りです。この「推論」能力により、AIは即座に回答を生成するのではなく、人間が数学の問題を解くときに途中式を書くように、内部で思考プロセスを経てから最終的な回答を導き出します。これにより、複雑な課題に対する正答率が向上しています。`
+      },
+      {
+        index: 3,
+        text: `ラインナップの一つである「o4-mini」は、推論能力を最大限に高めるために設計された高コストなモデルであり、API利用料金はo3モデルよりも高く設定されている。`,
+        answer: '×',
+        explanation: `o4-miniは、高速かつ低コストであることを重視した「軽量版」モデルです。スループット（処理量）に優れており、API利用料金はo3の約10分の1と非常に安価に設定されています。日常的なタスクや大量のデータ処理に適したバランスの良いモデルです。`
+      },
+      {
+        index: 4,
+        text: `「o4-mini-high」モデルは、標準のo4-miniと比較してパラメータ「reasoning_effort（推論の強度）」が高く設定されており、応答速度よりも「深く考えること」を優先している。`,
+        answer: '○',
+        explanation: `正しい記述です。o4-mini-highは、reasoning_effort=high が標準設定となっており、AIに対して「時間をかけて慎重に考える」よう指示されたモデルです。そのため、標準版より応答に時間はかかりますが、特に理数系の難問や複雑な分析において高い精度を発揮します。`
+      },
+      {
+        index: 5,
+        text: `GPT-o4モデルは、その高い推論能力を活用し、Web検索やプログラム実行（Pythonなど）といった外部ツールを自律的に組み合わせて課題を解決することができる。`,
+        answer: '○',
+        explanation: `GPT-o4は単にテキストを生成するだけでなく、必要に応じて自律的に外部ツールを使用する能力を持っています。推論プロセスの中で「この質問には最新情報が必要だ」「計算が必要だ」と判断すれば、Web検索を行ったりコードを実行したりして、より確実な答えを導き出すことができます。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

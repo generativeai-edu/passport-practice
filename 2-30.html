@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `Microsoft Copilot（マイクロソフト コパイロット）は、以前「Bing Chat」などと呼ばれていた検索AI機能などを統合した、Microsoftが提供する生成AIサービスの総称（ブランド名）である。`,
+        answer: '○',
+        explanation: `その通りです。2023年11月に、それまでバラバラだったAI機能の名称が「Microsoft Copilot」に統一されました。「副操縦士」という意味を持ち、Windows、Edgeブラウザ、スマートフォンアプリなど、あらゆる場所でユーザーを支援する存在として位置づけられています。`
+      },
+      {
+        index: 2,
+        text: `企業向けプランである「Microsoft 365 Copilot」は、インターネット上の公開情報のみを学習データとして使用するため、社内の会議議事録やメールの内容を参照して回答を作成することはできない。`,
+        answer: '×',
+        explanation: `Microsoft 365 Copilotの大きな特徴は、社内のデータ（Microsoft 365内のメール、チャット、ドキュメントなど）を安全に参照できる点です。「Microsoft Graph」という仕組みを使い、ユーザーが閲覧権限を持っている社内データとAIを連携させることで、例えば「昨日の会議の要約を作って」といった指示に応えることができます。`
+      },
+      {
+        index: 3,
+        text: `「Copilot Studio」を使用して自社専用のCopilot（チャットボット）を構築するためには、高度なプログラミング言語の知識と長い開発期間が必須である。`,
+        answer: '×',
+        explanation: `Copilot Studioは「ローコード（Low-Code）」と呼ばれる仕組みを採用しており、難しいプログラミングコードをバリバリ書かなくても、設定画面での操作や簡単な指示でAIを構築できるように設計されています。これにより、社内ルールや特定の製品知識を学習させた専用AIを比較的容易に作成できます。`
+      },
+      {
+        index: 4,
+        text: `AI処理に特化したPC「Copilot+ PC」に搭載されている「Recall（リコール）」機能は、過去にPCで見た画面の履歴を記憶し、「あの時のあの資料」といった曖昧な言葉でもオフラインで検索して呼び出すことができる。`,
+        answer: '○',
+        explanation: `正しい記述です。Copilot+ PCには、AIの計算を専門に行う「NPU（Neural Processing Unit）」というチップが搭載されており、クラウド（インターネット）を経由せずにPC本体の中で高度な処理が可能です。Recall機能はこのNPUを活用し、過去の操作履歴を安全に検索・呼び出しすることを可能にしています。`
+      },
+      {
+        index: 5,
+        text: `ソフトウェア開発者を支援する「GitHub Copilot」は、プログラマーが「こんな機能が欲しい」と指示を出すと、AIが自動でコードを提案・記述してくれるサービスである。`,
+        answer: '○',
+        explanation: `その通りです。GitHub Copilotはプログラマー（開発者）向けのAIツールです。コードの自動補完や生成を行い、開発作業の効率化を助けます。最新のモデル（GPT-4oなど）を採用することで、より賢く、高速にプログラミングをサポートする機能が強化されています。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

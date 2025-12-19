@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `RAG（検索拡張生成）は、AIがあらかじめ学習したデータのみを使用して回答を生成する技術であり、学習していない最新情報や社内情報には対応できない。`,
+        answer: '×',
+        explanation: `RAG（Retrieval-Augmented Generation）は、AIが回答を生成する前に、外部のデータベースから関連する情報を「検索（Retrieve）」し、その情報をAIに与えて回答を「生成（Generate）」させる技術です。これにより、AIが学習していない最新のニュースや、社内マニュアルなどの非公開情報に基づいた回答が可能になります。学習データのみに頼る従来の生成手法とはこの点が大きく異なります。`
+      },
+      {
+        index: 2,
+        text: `RAGのデータ準備プロセスにおける「ベクトル化」とは、文章や単語の意味をコンピュータが計算可能な「数値の集まり（ベクトル）」に変換することであり、これにより言葉の意味的な近さを計算して検索できるようになる。`,
+        answer: '○',
+        explanation: `正しい記述です。コンピュータはそのままでは言葉の意味を理解できません。そこで、文章をベクトル（数値の列）に変換し、ベクトル空間内での「位置」や「距離」として扱います。意味が近い言葉はベクトル空間上でも近い位置になるため、キーワードが完全に一致しなくても、意味的に関連する情報を高精度に検索（セマンティック検索）することが可能になります。`
+      },
+      {
+        index: 3,
+        text: `長いドキュメントをRAGで利用する場合、検索の精度を高めるために文書をある程度の長さ（意味のある単位）ごとに分割する処理を行うが、これを「チャンク（Chunking）」と呼ぶ。`,
+        answer: '○',
+        explanation: `正しい記述です。数百ページあるような長い文書をそのままデータベースに入れると、情報の粒度が大きすぎて検索の精度が下がったり、AIが読み込む際にコンテキストウィンドウ（扱える情報量）を圧迫したりします。そのため、章や節、あるいは一定の文字数ごとに「チャンク（小さなかたまり）」に分割して保存・検索するのが一般的です。`
+      },
+      {
+        index: 4,
+        text: `RAGを利用してAIに新しい知識を追加する場合、AIモデル自体に新しいデータを学習させる「ファインチューニング（再学習）」が毎回必須となるため、情報の更新には多大な時間とコストがかかる。`,
+        answer: '×',
+        explanation: `RAGの大きなメリットは、AIモデル自体の再学習（ファインチューニング）が不要な点です。新しい情報は外部のデータベース（ベクトルデータベースなど）に追加・更新するだけで済むため、AIモデルを再学習させるのに比べて、圧倒的に低コストかつ迅速に情報を最新化できます。`
+      },
+      {
+        index: 5,
+        text: `生成AIは時として事実に基づかないもっともらしい嘘（ハルシネーション）を出力することがあるが、RAGを使用し、信頼できる外部情報を根拠として参照させることで、このハルシネーションを抑制する効果が期待できる。`,
+        answer: '○',
+        explanation: `正しい記述です。生成AIは確率的に次の単語を予測するため、事実とは異なる内容を創作してしまう「ハルシネーション（幻覚）」という課題があります。RAGでは、回答の根拠となる正確なドキュメントを検索してAIに提示し、「この情報を参照して答えて」と指示する仕組みになるため、AIが想像で補う部分が減り、回答の正確性が向上します。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

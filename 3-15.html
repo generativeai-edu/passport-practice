@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `大規模言語モデル（LLM）を用いたAIエージェントは、学習済みの知識を利用することで、単体でも「今日の天気」や「最新の株価」といったリアルタイムな情報を元にしたタスクを正確に実行できる。`,
+        answer: '×',
+        explanation: `LLM（大規模言語モデル）単体は、過去に学習したデータしか持っていないため、学習後に発生した最新情報やリアルタイムな変化（天気、株価など）を知ることはできません。こうしたタスクを実行するには、外部のデータベースやAPIと連携し、情報を取得する仕組みが不可欠です。`
+      },
+      {
+        index: 2,
+        text: `これまでAIエージェントが外部ツールと連携する際、ツールごとに専用の接続プログラム（アダプタ）を個別に開発する必要があり、これが開発コスト増大の要因となっていた。`,
+        answer: '○',
+        explanation: `従来は統一された規格がなかったため、A社のツール、B社のシステムと接続先が増えるたびに、それぞれの仕様に合わせた専用の接続プログラム（コネクタやプラグイン）を開発する必要がありました。これは家電製品ごとにコンセントの形状が異なるような状態で、開発の大きな負担となっていました。`
+      },
+      {
+        index: 3,
+        text: `Anthropic社が公開した「MCP（Model Context Protocol）」は、AIと外部システムを接続するためのオープンな共通規格であり、よく「AI版のUSB-C」に例えられる。`,
+        answer: '○',
+        explanation: `MCPは、AIモデルと外部のデータやツールを接続するための共通ルール（プロトコル）です。ハードウェアの世界でUSB-Cポートがあればメーカーを問わず機器が接続できるように、AIの世界でもMCPという共通規格を使うことで、個別の専用プログラムなしに様々なツールと簡単に接続できるようになることを目指しています。`
+      },
+      {
+        index: 4,
+        text: `MCPの仕組みにおいて、ユーザーの指示（例：「大阪の天気を教えて」）を受けて、どの外部ツールを使用すべきかを判断するのは、外部ツール（サーバー）側の役割である。`,
+        answer: '×',
+        explanation: `どのツールを使うかを判断するのは、外部ツール側ではなく「AI（LLM）」側です。まずアプリ側がサーバーから「利用可能なツールの一覧」を受け取り、AIがユーザーの指示を理解した上で、その一覧の中から最適なツール（例：天気予報ツール）を選択し、実行命令を出します。`
+      },
+      {
+        index: 5,
+        text: `MCPを導入することで、ユーザーは複雑な操作を覚えなくても、自然言語で指示を出すだけで、AIエージェントが必要なツールを自律的に連携させてタスクを完結させることができるようになる。`,
+        answer: '○',
+        explanation: `MCPによってAIと多様なツールがスムーズに連携できるようになると、AIエージェントはユーザーの「旅行を予約して」といった曖昧な指示から、航空券検索、ホテル予約、カレンダー登録といった複数のツールを自ら選択・実行できるようになります。これによりユーザーの利便性が大きく向上します。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>

@@ -1,0 +1,122 @@
+<!doctype html>
+<html lang="ja">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>正誤問題</title>
+  <style>
+    :root{--bg:#f7f9fc;--card:#ffffff;--accent:#0b66ff;--muted:#586069}
+    *{box-sizing:border-box}
+    body{font-family:system-ui,-apple-system,Segoe UI,Roboto,'Hiragino Kaku Gothic ProN','Noto Sans JP',sans-serif;background:var(--bg);color:#0b1a2b;margin:0;padding:32px}
+    .wrap{max-width:880px;margin:0 auto}
+    h1{font-size:1.6rem;margin:0 0 18px}
+    .card{background:var(--card);border-radius:12px;box-shadow:0 6px 20px rgba(12,18,30,0.06);padding:18px;margin-bottom:14px}
+    .q-title{display:flex;align-items:center;gap:12px}
+    .q-index{background:linear-gradient(90deg,#e8f0ff,#eef7ff);color:var(--accent);padding:6px 10px;border-radius:8px;font-weight:700}
+    .question{font-size:1.05rem;line-height:1.6;margin:8px 0 14px}
+
+    .toggle-btn{background:var(--accent);color:#fff;padding:8px 12px;border-radius:8px;border:none;cursor:pointer;margin-top:8px}
+    .answer-box{display:none;margin-top:12px;padding:12px 14px;border-left:3px solid #eef3fb;background:#ffffff;border-radius:8px}
+    .answer-pill{padding:6px 10px;border-radius:999px;font-weight:700;border:1px solid rgba(0,0,0,0.06);display:inline-block;margin-bottom:8px}
+    .answer-box p{margin:0 0 8px;line-height:1.7}
+
+    .controls{display:flex;gap:8px;justify-content:flex-end;margin-bottom:12px}
+    .btn{background:var(--accent);color:white;padding:8px 12px;border-radius:8px;border:none;cursor:pointer}
+    .btn.ghost{background:transparent;color:var(--accent);border:1px solid rgba(11,102,255,0.14)}
+
+    @media (max-width:520px){body{padding:18px}.card{padding:14px}}
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <h1>正誤問題</h1>
+
+    <div class="controls">
+      <button class="btn" id="openAll">すべて表示</button>
+      <button class="btn ghost" id="closeAll">すべて隠す</button>
+    </div>
+
+    <div id="quiz"></div>
+  </div>
+
+  <script>
+    const questions = [
+      {
+        index: 1,
+        text: `GPT-o1は、従来のGPT-4oなどのモデルと比較して、ユーザーからの質問に対して「より素早く」回答を返すことを最優先に設計されている。`,
+        answer: '×',
+        explanation: `GPT-o1は「速さ」よりも「回答の質」や「正確さ」を重視して設計されたモデルです。従来のAIが直感的な速さを得意としていたのに対し、GPT-o1は回答を出力する前に内部で時間をかけて「どう答えるべきか」を深く考える（推論する）プロセスを経るため、応答には一定の時間がかかります。`
+      },
+      {
+        index: 2,
+        text: `GPT-o1の最大の特徴である「リーズニング（推論）」とは、筋道を立ててじっくりと考え、論理的な答えを導き出す能力のことである。`,
+        answer: '○',
+        explanation: `その通りです。「リーズニング（Reasoning）」はGPT-o1の中核となる能力です。単に知識を検索して返すのではなく、人間が難しい問題を解くときのように、論理的なステップを踏んで思考（内部思考）を行うことで、より賢く正確な回答が可能になっています。`
+      },
+      {
+        index: 3,
+        text: `GPT-o1は、日常会話や簡単な文章の要約といった、直感的で軽微なタスクにおいて、従来のAIよりも圧倒的にコストパフォーマンスが良く、最も適していると言える。`,
+        answer: '×',
+        explanation: `日常会話や簡単な要約など、直感的なレスポンスが求められるタスクについては、従来の「速さを重視するAI（GPT-4oなど）」の方が得意な場合があり、適しています。GPT-o1は、その高い推論能力を活かせる「複雑な問題」や「論理的な判断が必要な難易度の高い作業」で真価を発揮します。`
+      },
+      {
+        index: 4,
+        text: `GPT-o1が得意とする分野の一つに「ソフトウェア開発」があり、プログラムの設計図（仕様）を理解して間違いのないコードを作成するといった作業に適している。`,
+        answer: '○',
+        explanation: `GPT-o1は論理的な思考力が強化されているため、複雑な条件や仕様を正確に読み解く必要があるソフトウェア開発の分野を得意としています。他にも、複雑なデータの分析が必要な研究開発や、専門知識と論理的判断が求められる法律・医療分野などのサポートに適しています。`
+      },
+      {
+        index: 5,
+        text: `GPT-o1という名称の「o1」は、OpenAIが2024年に発表した新しい「リーズニングモデル」シリーズの第1弾であることを示している。`,
+        answer: '○',
+        explanation: `「o1」という名称は、これが新しいシリーズの最初のモデル（No.1）であることを表しています。ChatGPTを開発したOpenAI社が、従来のモデルとは異なるアプローチで開発した、推論能力に特化した新しいAIモデルのシリーズです。`
+      }
+    ];
+
+    const quizEl = document.getElementById('quiz');
+
+    function createCard(q){
+      const card = document.createElement('section');
+      card.className = 'card';
+
+      const title = document.createElement('div');
+      title.className = 'q-title';
+      title.innerHTML = `<div class="q-index">第${q.index}問</div><div style="flex:1"><div class="question">${escapeHTML(q.text)}</div></div>`;
+      card.appendChild(title);
+
+      const btn = document.createElement('button');
+      btn.className = 'toggle-btn';
+      btn.textContent = '解答と解説をみる';
+      card.appendChild(btn);
+
+      const box = document.createElement('div');
+      box.className = 'answer-box';
+      box.innerHTML = `<div class="answer-pill">解答: ${escapeHTML(q.answer)}</div><p>${escapeHTML(q.explanation)}</p>`;
+      card.appendChild(box);
+
+      btn.addEventListener('click',()=>{
+        const visible = box.style.display === 'block';
+        box.style.display = visible ? 'none' : 'block';
+        btn.textContent = visible ? '解答と解説をみる' : '隠す';
+      });
+
+      return card;
+    }
+
+    function escapeHTML(s){
+      return s.replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\"/g,'&quot;');
+    }
+
+    questions.forEach(q => quizEl.appendChild(createCard(q)));
+
+    document.getElementById('openAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='block');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='隠す');
+    });
+    document.getElementById('closeAll').addEventListener('click',()=>{
+      document.querySelectorAll('.answer-box').forEach(b=>b.style.display='none');
+      document.querySelectorAll('.toggle-btn').forEach(btn=>btn.textContent='解答と解説をみる');
+    });
+  </script>
+</body>
+</html>
